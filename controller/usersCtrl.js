@@ -24,7 +24,10 @@ const reg = async (req, res, next) => {
       status: 'success',
       code: 200,
       data: {
-        user: newUser,
+        user: {
+          email: newUser.email,
+          subscription: newUser.subscription,
+        },
       },
     });
   } catch (err) {
@@ -35,9 +38,9 @@ const reg = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    const user = findUserByEmail(email);
+    const user = await findUserByEmail(email);
 
-    if (!user || !User.validPassword(password)) {
+    if (!user || !(await user.validPassword(password))) {
       return res.status(400).json({
         status: 'error',
         code: 400,
@@ -47,13 +50,17 @@ const login = async (req, res, next) => {
     }
     const payload = { id: user._id };
 
-    const token = jwt.sign(payload, SECRET_KEY, { expireIn: '1h' });
+    const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
 
     res.json({
       status: 'success',
       code: 200,
       data: {
         token,
+        user: {
+          email: user.email,
+          subscription: user.subscription,
+        },
       },
     });
   } catch (err) {

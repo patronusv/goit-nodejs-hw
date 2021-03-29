@@ -1,8 +1,9 @@
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
 dotenv.config();
-const { findUserByEmail, findUserById, createNewUser, updateToken } = require('../model/users');
+const { findUserByEmail, findUserById, createNewUser, updateToken, patchSub } = require('../model/users');
 const User = require('../model/schemas/userSchema');
+const { Subscription } = require('../helpers/constants');
 
 const { SECRET_KEY } = process.env;
 
@@ -104,9 +105,36 @@ const current = async (req, res, next) => {
   }
 };
 
+const patch = async (req, res, next) => {
+  try {
+    const { subscription } = req.body;
+    const subOptions = Object.values(Subscription);
+    if (!subOptions.includes(subscription)) {
+      return res.status(400).json({
+        status: 'error',
+        code: 400,
+        message: `invalid subscription, must be one of the following: ${subOptions}`,
+      });
+    }
+    const user = await patchSub(req.user.id, subscription);
+    return res.status(200).json({
+      status: 'success',
+      code: 200,
+      message: `subscription changed to ${subscription}`,
+      data: {
+        email: user.email,
+        subscription: user.subscription,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   reg,
   login,
   logout,
   current,
+  patch,
 };

@@ -52,6 +52,8 @@ const login = async (req, res, next) => {
 
     const token = jwt.sign(payload, SECRET_KEY, { expiresIn: '1h' });
 
+    await updateToken(payload.id, token);
+
     res.json({
       status: 'success',
       code: 200,
@@ -70,10 +72,33 @@ const login = async (req, res, next) => {
 const logout = async (req, res, next) => {
   try {
     const id = req.user.id;
-
     await updateToken(id, null);
 
     return res.status(204).json({});
+  } catch (err) {
+    next(err);
+  }
+};
+const current = async (req, res, next) => {
+  try {
+    const { id, email, subscription } = req.user;
+    const user = await findUserById(id);
+    if (!user) {
+      return res.status(401).json({
+        status: 'error',
+        code: 401,
+        message: 'Not authorized',
+      });
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      code: 200,
+      data: {
+        email,
+        subscription,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -83,4 +108,5 @@ module.exports = {
   reg,
   login,
   logout,
+  current,
 };

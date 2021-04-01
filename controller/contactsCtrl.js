@@ -1,14 +1,14 @@
-const { listContacts, getContactById, removeContact, addContact, updateContact } = require('../model/index');
+const { listContacts, getContactById, removeContact, addContact, updateContact } = require('../model/contacts');
 
 const get = async (req, res, next) => {
   try {
-    const contacts = await listContacts();
+    const contacts = await listContacts(req.user.id, req.query);
     console.log('contacts', contacts);
     res.json({
       status: 'success',
       code: 200,
       data: {
-        contacts,
+        ...contacts,
       },
     });
   } catch (err) {
@@ -50,7 +50,7 @@ const add = async (req, res, next) => {
         message: errMessage,
       });
     } else {
-      const data = await addContact(req.body);
+      const data = await addContact({ ...req.body, owner: req.user.id });
       res.json({
         status: 'success',
         code: 201,

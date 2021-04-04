@@ -8,9 +8,6 @@ const { TEMPDIR } = process.env;
 
 const tempDirectory = path.join(process.cwd(), TEMPDIR);
 
-// console.log(tempDirectory);
-// console.log(uploadDirectory);
-
 const uploadOptions = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, tempDirectory);

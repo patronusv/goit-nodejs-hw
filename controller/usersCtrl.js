@@ -142,7 +142,6 @@ const patch = async (req, res, next) => {
 const avatar = async (req, res, next) => {
   const { path: tempName, originalname } = req.file;
   const { id } = req.user;
-  console.log(id);
   await folderExists(uploadDirectory);
   const img = await Jimp.read(tempName);
   await img
@@ -150,7 +149,6 @@ const avatar = async (req, res, next) => {
     .cover(250, 250, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE)
     .writeAsync(tempName);
   const newName = path.join(uploadDirectory, `avatar${id}${path.extname(originalname)}`);
-  console.log(newName);
   try {
     await fs.rename(tempName, newName);
     const user = await patchAvatar(id, newName);

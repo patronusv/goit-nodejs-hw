@@ -24,10 +24,16 @@ const patchSub = async (id, sub) => {
   return user;
 };
 
+const patchAvatar = async (id, avatar) => {
+  const user = await User.findByIdAndUpdate(id, { avatarURL: avatar }, { new: true });
+  return user;
+};
+
 module.exports = {
   findUserByEmail,
   findUserById,
   createNewUser,
   updateToken,
   patchSub,
+  patchAvatar,
 };

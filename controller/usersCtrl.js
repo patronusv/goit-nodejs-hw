@@ -1,12 +1,18 @@
+const fs = require('fs').promises;
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const gravatar = require('gravatar');
+const Jimp = require('jimp');
 const dotenv = require('dotenv');
 dotenv.config();
-const { findUserByEmail, findUserById, createNewUser, updateToken, patchSub } = require('../model/users');
+const { findUserByEmail, findUserById, createNewUser, updateToken, patchSub, patchAvatar } = require('../model/users');
 const User = require('../model/schemas/userSchema');
 const { Subscription } = require('../helpers/constants');
+const folderExists = require('../helpers/folderExists');
 
-const { SECRET_KEY } = process.env;
+const { SECRET_KEY, UPLOADDIR } = process.env;
+
+const uploadDirectory = path.join(process.cwd(), UPLOADDIR);
 
 const reg = async (req, res, next) => {
   try {
@@ -20,7 +26,7 @@ const reg = async (req, res, next) => {
         data: 'Email conflict',
       });
     }
-    const avatarURL = gravatar.url(email, { protocol: 'https', s: '100' });
+    const avatarURL = gravatar.url(email, { protocol: 'https', s: '250' });
     const newUser = await createNewUser({ ...req.body, avatarURL });
 
     res.status(201).json({
@@ -133,10 +139,38 @@ const patch = async (req, res, next) => {
   }
 };
 
+const avatar = async (req, res, next) => {
+  const { path: tempName, originalname } = req.file;
+  const { id } = req.user;
+  console.log(id);
+  await folderExists(uploadDirectory);
+  const img = await Jimp.read(tempName);
+  await img
+    .autocrop()
+    .cover(250, 250, Jimp.HORIZONTAL_ALIGN_CENTER | Jimp.VERTICAL_ALIGN_MIDDLE)
+    .writeAsync(tempName);
+  const newName = path.join(uploadDirectory, `avatar${id}${path.extname(originalname)}`);
+  console.log(newName);
+  try {
+    await fs.rename(tempName, newName);
+    const user = await patchAvatar(id, newName);
+    res.status(200).json({
+      status: 'success',
+      code: 200,
+      message: 'avatar link updated',
+      data: { avatarURL: user.avatarURL },
+    });
+  } catch (error) {
+    await fs.unlink(tempName);
+    return next(error);
+  }
+};
+
 module.exports = {
   reg,
   login,
   logout,
   current,
   patch,
+  avatar,
 };

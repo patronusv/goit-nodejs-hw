@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const gravatar = require('gravatar');
 const dotenv = require('dotenv');
 dotenv.config();
 const { findUserByEmail, findUserById, createNewUser, updateToken, patchSub } = require('../model/users');
@@ -19,7 +20,8 @@ const reg = async (req, res, next) => {
         data: 'Email conflict',
       });
     }
-    const newUser = await createNewUser(req.body);
+    const avatarURL = gravatar.url(email, { protocol: 'https', s: '100' });
+    const newUser = await createNewUser({ ...req.body, avatarURL });
 
     res.status(201).json({
       status: 'success',

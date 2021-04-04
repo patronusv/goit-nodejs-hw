@@ -10,8 +10,8 @@ const findUserById = async id => {
   return user;
 };
 
-const createNewUser = async ({ email, password, subscription, token }) => {
-  const user = await new User({ email, password, subscription, token }).save();
+const createNewUser = async ({ email, password, subscription, token, avatarURL }) => {
+  const user = await new User({ email, password, subscription, token, avatarURL }).save();
   return user;
 };
 

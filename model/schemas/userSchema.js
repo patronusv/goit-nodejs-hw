@@ -27,6 +27,7 @@ const userSchema = new Schema({
     default: 'free',
   },
   token: String,
+  avatarURL: String,
 });
 
 userSchema.pre('save', async function (next) {
